@@ -29,22 +29,16 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
 
 # Install iFlow CLI
 # Use build arg to customize installation: --build-arg IFLOW_NPM_PACKAGE=your-iflow-package
+ARG IFLOW_NPM_PACKAGE=@iflow-ai/iflow-cli
 RUN npm install -g ${IFLOW_NPM_PACKAGE} && \
     which iflow && iflow --version || echo "iFlow installation attempted"
 
-# Install Python dependencies
-COPY setup.py .
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -e . || pip install --no-cache-dir \
-    Click>=8.0 \
-    PyYAML>=6.0 \
-    colorama>=0.4 \
-    Flask>=2.0.0 \
-    PyGithub>=1.58.0 \
-    GitPython>=3.1.0
-
-# Copy application code
+# Copy application code first for editable install
 COPY . .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -e .
 
 # Create directories
 RUN mkdir -p /app/repos /app/.issue-automator
