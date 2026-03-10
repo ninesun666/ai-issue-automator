@@ -2,29 +2,35 @@ version: '3.8'
 
 services:
   issue-automator:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        - IFLOW_NPM_PACKAGE=${IFLOW_NPM_PACKAGE:-iflow}
-        - WEBHOOK_PORT=${WEBHOOK_PORT:-8080}
+    image: ninesun6666/issue-automator:latest
+    # Uncomment below to build from source instead
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
     container_name: issue-automator
     restart: unless-stopped
     ports:
       - "${WEBHOOK_PORT:-8080}:${WEBHOOK_PORT:-8080}"
     environment:
+      # GitHub Configuration
       - GITHUB_TOKEN=${GITHUB_TOKEN}
       - GITHUB_WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET}
+      # Server Configuration
       - WEBHOOK_PORT=${WEBHOOK_PORT:-8080}
       - WEBHOOK_HOST=0.0.0.0
+      # AI Configuration (iFlow CLI)
+      - apiKey=${apiKey}
+      - baseUrl=${baseUrl:-}
+      - modelName=${modelName:-}
+      # Python
       - PYTHONUNBUFFERED=1
     volumes:
-      # Persist repositories
+      # Persist cloned repositories
       - ./repos:/app/repos
-      # Persist configuration
-      - ./issue-automator.config.json:/app/issue-automator.config.json:ro
       # Persist logs
       - ./logs:/app/logs
+      # Optional: Custom configuration
+      # - ./issue-automator.config.json:/app/issue-automator.config.json:ro
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${WEBHOOK_PORT:-8080}/health"]
       interval: 30s
@@ -34,14 +40,14 @@ services:
     networks:
       - issue-automator-network
 
-  # Optional: Reverse proxy for SSL
+  # Optional: Nginx reverse proxy for SSL (production)
   nginx:
     image: nginx:alpine
     container_name: issue-automator-nginx
     restart: unless-stopped
     ports:
-      - "443:443"
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./certs:/etc/nginx/certs:ro
@@ -55,7 +61,3 @@ services:
 networks:
   issue-automator-network:
     driver: bridge
-
-volumes:
-  repos:
-  logs:
