@@ -1,350 +1,196 @@
-# AI Harness - iFlow CLI 自动化开发框架
+# Issue Automator - GitHub Issue 自动化处理工具
 
-一套完整的 AI 辅助开发自动化方案，让 iFlow CLI 能够持续、自主地完成软件开发任务。
+一套完整的 GitHub Issue 自动化处理方案，支持 Webhook 触发、AI 分析、自动创建分支和 PR。
 
 ---
 
 ## 核心特性
 
-- **自动化执行** - 无需人工干预，AI 自动完成开发任务
-- **任务管理** - 基于 feature_list.json 的任务清单系统
-- **进度追踪** - 详细的会话日志和进度记录
-- **永续运行** - 支持持续运行直到所有任务完成
-- **多项目支持** - 可同时管理多个项目的开发
+- **Webhook 触发** - 接收 GitHub Webhook，自动响应 Issue 创建
+- **AI 分析需求** - 使用 iFlow CLI 分析 Issue 并拆解任务
+- **自动创建分支** - 根据 Issue 类型创建 feat/fix 分支
+- **代码自动生成** - AI 自动实现功能代码
+- **PR 自动创建** - 完成后自动创建 Pull Request
+- **通知人工评审** - 在 Issue 中评论 PR 链接
 
 ---
 
 ## 快速开始
 
-### 第一步：初始化项目
+### 1. 安装
 
-**Windows:**
-```
-双击 init.bat
-```
-
-**Linux/macOS:**
 ```bash
-python init_project.py
+# 克隆仓库
+git clone https://github.com/your-username/issue-automator.git
+cd issue-automator
+
+# 安装依赖
+pip install -e .
 ```
 
-启动后会扫描同级和上级目录，显示候选项目列表：
+### 2. 配置
 
-```
-============================================================
-       AI Harness - Project Initializer
-============================================================
+创建 `.env` 文件：
 
-[扫描目录]
-  从 C:\Users\gjx\clawd 扫描...
+```bash
+# GitHub Personal Access Token
+GITHUB_TOKEN=ghp_your_token_here
 
-候选项目目录:
-------------------------------------------------------------
-[待初始化]
-  1. task-schedule [java-maven]
-      上级: task-schedule
-  2. ninesun-blog [nodejs]
-      同级: ninesun-blog
-  3. ai-legion [nodejs]
-      同级: ai-legion
-------------------------------------------------------------
-  0. 输入自定义路径
-  Q. 退出
-------------------------------------------------------------
+# Webhook 密钥
+GITHUB_WEBHOOK_SECRET=your_secret_here
 
-请选择 [1-3/0/Q]: 
+# 服务端口 (可选)
+WEBHOOK_PORT=8080
 ```
 
-选择项目后会自动：
-- 检测项目类型 (Java/Maven, Node.js, Python, Go, Rust)
-- 创建 `.agent-harness/` 目录
-- 生成 `feature_list.json` 任务清单模板
-- 生成 `AGENT_INSTRUCTIONS.md` 工作流程规范
-- 生成 `claude-progress.txt` 进度日志
+### 3. 启动服务
 
-### 第二步：添加任务
+```bash
+# 启动 webhook 服务
+issue-automator automation start
 
-编辑项目中的 `.agent-harness/feature_list.json`，添加开发任务：
+# 或使用短命令
+ia automation start
+```
+
+### 4. 配置 GitHub Webhook
+
+在 GitHub 仓库设置中：
+
+1. 进入 **Settings** → **Webhooks** → **Add webhook**
+2. 填写配置：
+   - **Payload URL**: `http://your-server:8080/webhook`
+   - **Content type**: `application/json`
+   - **Secret**: 与 `.env` 中 `GITHUB_WEBHOOK_SECRET` 一致
+   - **Events**: 选择 `Issues`
+
+---
+
+## 工作流程
+
+```
+GitHub Issue 创建
+       │
+       ▼
+  Webhook 触发
+       │
+       ▼
+  AI 分析需求
+       │
+       ▼
+  创建分支 (feat/issue-xxx)
+       │
+       ▼
+  生成代码
+       │
+       ▼
+  创建 Pull Request
+       │
+       ▼
+  通知人工评审
+```
+
+---
+
+## 项目结构
+
+```
+issue-automator/
+├── issue_automator/           # 核心代码
+│   ├── cli/                   # 命令行接口
+│   ├── config/                # 配置管理
+│   ├── core/                  # 核心调度
+│   ├── analyzer/              # Issue 分析
+│   ├── git_manager/           # Git 操作
+│   ├── notification/          # GitHub 通知
+│   ├── webhook/               # Webhook 服务
+│   └── providers/             # AI 提供者
+├── tests/                     # 测试文件
+├── templates/                 # 模板文件
+├── Dockerfile
+├── docker-compose.yml
+└── setup.py
+```
+
+---
+
+## Docker 部署
+
+```bash
+# 构建镜像
+docker-compose build
+
+# 启动服务
+docker-compose up -d
+
+# 查看日志
+docker-compose logs -f issue-automator
+```
+
+---
+
+## 命令行
+
+```bash
+# 启动自动化服务
+issue-automator automation start
+
+# 指定端口
+issue-automator automation start --port 9000
+
+# 指定工作目录
+issue-automator automation start --work-dir /path/to/repos
+
+# 使用配置文件
+issue-automator automation start -c config.json
+```
+
+---
+
+## 配置文件
+
+`issue-automator.config.json`:
 
 ```json
 {
-  "features": [
-    {
-      "id": "F001",
-      "description": "实现用户登录功能",
-      "priority": "high",
-      "steps": ["创建登录页面", "实现认证逻辑", "添加单元测试"],
-      "passes": false
-    }
-  ]
+  "webhook": {
+    "port": 8080,
+    "host": "0.0.0.0",
+    "secret": "your-webhook-secret"
+  },
+  "github": {
+    "token": "${GITHUB_TOKEN}",
+    "api_base": "https://api.github.com"
+  },
+  "workflow": {
+    "auto_merge": false,
+    "require_review": true,
+    "max_retry": 3
+  }
 }
 ```
 
-### 第三步：运行自动化
+---
 
-**Windows:**
-```
-双击 start.bat
-```
+## 环境变量
 
-**Linux/macOS:**
-```bash
-chmod +x start.sh
-./start.sh
-```
-
-启动后会显示交互式菜单：
-```
-╔══════════════════════════════════════════════════════════╗
-║           AI Harness - iFlow 自动化开发工具               ║
-╠══════════════════════════════════════════════════════════╣
-║  让 AI 自主完成软件开发任务                                ║
-╚══════════════════════════════════════════════════════════╝
-
-✅ iFlow CLI: C:\nvm4w\nodejs\iflow.CMD
-
-📋 发现 2 个项目:
-   1. ai-legion (30/30)
-   2. ninesun-blog (26/40)
-
-─────────────────────────────────────────────────────────────
-操作菜单:
-  [1] 查看状态      - 显示选中项目的详细信息
-  [2] 单次执行      - 执行一个任务后停止
-  [3] 持续运行      - 自动执行直到所有任务完成
-  [4] 创建新项目    - 初始化一个新的项目结构
-  [Q] 退出
-─────────────────────────────────────────────────────────────
-
-请选择操作 [1-4/Q]:
-```
-
-### 方式二：命令行运行
-
-### 1. 安装依赖
-
-```bash
-# 需要 Python 3.8+
-python --version
-
-# 需要 iFlow CLI
-iflow --version
-```
-
-### 2. 配置项目
-
-在项目根目录创建 `.agent-harness/` 目录：
-
-```
-your-project/
-└── .agent-harness/
-    ├── feature_list.json      # 任务清单
-    ├── claude-progress.txt    # 进度日志
-    └── AGENT_INSTRUCTIONS.md  # 工作流程规范（可选）
-```
-
-### 3. 创建任务清单
-
-```json
-{
-  "project_spec": "项目描述",
-  "total_features": 10,
-  "completed": 0,
-  "pending": 10,
-  "features": [
-    {
-      "id": "F001",
-      "description": "功能描述",
-      "priority": "high",
-      "steps": ["步骤1", "步骤2"],
-      "passes": false,
-      "dependencies": []
-    }
-  ]
-}
-```
-
-### 4. 运行
-
-```bash
-# 检查状态
-python iflow_runner.py --action status --project your-project
-
-# 单次执行
-python iflow_runner.py --action run --project your-project
-
-# 持续运行
-python iflow_runner.py --action continuous --project your-project
-```
+| 变量名 | 说明 | 必需 |
+|--------|------|------|
+| `GITHUB_TOKEN` | GitHub Personal Access Token | ✓ |
+| `GITHUB_WEBHOOK_SECRET` | Webhook 签名密钥 | ✓ |
+| `WEBHOOK_PORT` | 服务端口 | 默认 8080 |
+| `WEBHOOK_HOST` | 监听地址 | 默认 0.0.0.0 |
 
 ---
 
-## 目录结构
+## GitHub Token 权限
 
-```
-ai-harness/
-├── iflow_runner.py              # 主调度脚本
-├── init_project.py              # 项目初始化脚本
-├── init.bat                     # Windows 初始化启动
-├── start.bat                    # Windows 主程序启动
-├── start.sh                     # Linux/macOS 主程序启动
-├── README.md                    # 本文件
-├── templates/                   # 模板文件
-│   ├── feature_list_template.json
-│   └── AGENT_INSTRUCTIONS_template.md
-└── iflow_runner/
-    └── AGENT_HARNESS_GUIDE.md   # 详细使用指南
-```
-
----
-
-## 核心文件说明
-
-### iflow_runner.py
-
-主调度脚本，负责：
-- 读取任务清单
-- 调用 iFlow CLI 执行任务
-- 追踪执行结果
-- 循环执行直到完成
-
-### feature_list.json
-
-任务清单格式：
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | string | 功能ID (F001, F002...) |
-| description | string | 功能描述 |
-| priority | string | 优先级 (high/medium/low) |
-| steps | array | 实现步骤 |
-| passes | boolean | 是否通过测试 |
-| dependencies | array | 依赖的功能ID |
-
-### claude-progress.txt
-
-进度日志格式：
-
-```
-[Session N - Coding Agent] YYYY-MM-DD HH:MM
-Feature: F001 - 功能名称
-Status: COMPLETED
-Summary:
-  - 完成的工作
-Files Modified:
-  - file1.ts
-Build: ✅ 成功
-```
-
----
-
-## 使用示例
-
-### 示例 1: 单项目开发
-
-```bash
-# 初始化项目
-mkdir my-project/.agent-harness
-
-# 创建 feature_list.json（参考 templates/feature_list_template.json）
-
-# 运行
-python iflow_runner.py --action continuous --project my-project
-```
-
-### 示例 2: 多项目管理
-
-```bash
-# 项目 A
-python iflow_runner.py --action run --project project-a
-
-# 项目 B
-python iflow_runner.py --action run --project project-b
-```
-
----
-
-## 命令参数
-
-| 参数 | 说明 | 默认值 |
-|------|------|--------|
-| --action | run/continuous/status | status |
-| --project | 项目名称 | ninesun-blog |
-| --interval | 持续模式间隔(秒) | 60 |
-| --max-iterations | 最大迭代次数 | 100 |
-
----
-
-## 工作原理
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                   AI Harness                             │
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  feature_list.json  →  iflow_runner.py  →  iFlow CLI   │
-│         ↓                      ↓                  ↓     │
-│    任务状态管理          调度执行          AI编码执行    │
-│         ↓                      ↓                  ↓     │
-│  claude-progress.txt ←── 记录进度 ←─────────────────┘   │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
-```
-
----
-
-## 注意事项
-
-1. **并发限制** - 不要同时在多个会话运行
-2. **任务粒度** - 每个任务应该是独立可测试的功能点
-3. **依赖管理** - 明确标注任务依赖关系
-4. **安全考虑** - --yolo 模式会自动接受所有操作
-
----
-
-## 模板文件
-
-### feature_list_template.json
-
-```json
-{
-  "project_spec": "你的项目描述",
-  "created_at": "2026-02-16T00:00:00",
-  "total_features": 0,
-  "completed": 0,
-  "pending": 0,
-  "features": []
-}
-```
-
-### AGENT_INSTRUCTIONS_template.md
-
-```markdown
-# Agent Instructions
-
-## 会话开始流程
-1. 读取进度文件
-2. 检查任务状态
-3. 开始工作
-
-## 会话结束流程
-1. 测试验证
-2. 更新状态
-3. 记录进度
-```
+需要的权限：
+- `repo` - 完整仓库访问
+- `write:discussion` - 讨论写入
 
 ---
 
 ## 许可证
 
 MIT License
-
----
-
-## 贡献
-
-欢迎提交 Issue 和 Pull Request！
-
----
-
-*Created by iFlow CLI Automation*

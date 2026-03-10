@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 # Entry point group name for AI Harness providers
-ENTRY_POINT_GROUP = "ai_harness.providers"
+ENTRY_POINT_GROUP = "issue_automator.providers"
 
 
 class ProviderRegistry:

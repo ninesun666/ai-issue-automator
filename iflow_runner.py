@@ -185,10 +185,11 @@ class iFlowRunner:
 
 ## 执行要求
 1. 读取 {project_name}/.agent-harness/feature_list.json 确认任务状态
-2. 按照任务描述完成开发
-3. 完成后运行测试验证 (如适用)
-4. 更新 {project_name}/.agent-harness/feature_list.json 中的 passes 状态为 true
-5. 更新 {project_name}/.agent-harness/claude-progress.txt 记录进度
+2. 读取 {project_name}/.agent-harness/AGENT_INSTRUCTIONS.md 理解开发流程
+3. 按照任务描述完成开发
+4. 完成后运行测试验证 (如适用)
+5. 更新 {project_name}/.agent-harness/feature_list.json 中的 passes 状态为 true
+6. 更新 {project_name}/.agent-harness/claude-progress.txt 记录进度
 
 ## 重要提醒
 - 只处理这一个任务

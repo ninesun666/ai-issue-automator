@@ -91,6 +91,44 @@ LOGGING_SCHEMA: Dict[str, FieldSpec] = {
     "console": FieldSpec("console", bool, default=True),
 }
 
+# Automation configuration schemas
+
+WEBHOOK_SCHEMA: Dict[str, FieldSpec] = {
+    "port": FieldSpec("port", int, default=8080, min_value=1, max_value=65535),
+    "host": FieldSpec("host", str, default="0.0.0.0"),
+    "secret": FieldSpec("secret", str, default=None),
+    "path": FieldSpec("path", str, default="/webhook"),
+}
+
+GITHUB_SCHEMA: Dict[str, FieldSpec] = {
+    "token": FieldSpec("token", str, default=None),
+    "api_base": FieldSpec("api_base", str, default="https://api.github.com"),
+    "use_ssh": FieldSpec("use_ssh", bool, default=False),
+}
+
+PROJECT_SCHEMA: Dict[str, FieldSpec] = {
+    "repo": FieldSpec("repo", str, required=True),
+    "branch_prefix_feature": FieldSpec("branch_prefix_feature", str, default="feat"),
+    "branch_prefix_bug": FieldSpec("branch_prefix_bug", str, default="fix"),
+    "labels_feature": FieldSpec("labels_feature", list, default=["enhancement", "feature"]),
+    "labels_bug": FieldSpec("labels_bug", list, default=["bug", "fix"]),
+    "default_reviewers": FieldSpec("default_reviewers", list, default=[]),
+}
+
+WORKFLOW_SCHEMA: Dict[str, FieldSpec] = {
+    "auto_merge": FieldSpec("auto_merge", bool, default=False),
+    "require_review": FieldSpec("require_review", bool, default=True),
+    "max_retry": FieldSpec("max_retry", int, default=3, min_value=0, max_value=10),
+    "task_timeout": FieldSpec("task_timeout", int, default=3600, min_value=60),
+    "default_reviewers": FieldSpec("default_reviewers", list, default=[]),
+}
+
+ANALYZER_SCHEMA: Dict[str, FieldSpec] = {
+    "iflow_path": FieldSpec("iflow_path", str, default=None),
+    "max_turns": FieldSpec("max_turns", int, default=30, min_value=1, max_value=100),
+    "analysis_timeout": FieldSpec("analysis_timeout", int, default=600, min_value=60),
+}
+
 MAIN_SCHEMA: Dict[str, FieldSpec] = {
     "default_provider": FieldSpec("default_provider", str, default="iflow"),
     "project_name": FieldSpec("project_name", str, default=None),
@@ -125,6 +163,11 @@ class ConfigSchema:
             "report": REPORT_SCHEMA,
             "logging": LOGGING_SCHEMA,
             "provider": PROVIDER_SCHEMA,
+            "webhook": WEBHOOK_SCHEMA,
+            "github": GITHUB_SCHEMA,
+            "project": PROJECT_SCHEMA,
+            "workflow": WORKFLOW_SCHEMA,
+            "analyzer": ANALYZER_SCHEMA,
         }
 
     def validate_field(
@@ -249,6 +292,38 @@ class ConfigSchema:
                     provider_config, "provider", f"providers.{provider_name}"
                 )
                 errors.extend(provider_errors)
+
+        # Validate webhook section (automation)
+        if "webhook" in config:
+            errors.extend(
+                self.validate_section(config["webhook"], "webhook", "webhook")
+            )
+
+        # Validate github section (automation)
+        if "github" in config:
+            errors.extend(
+                self.validate_section(config["github"], "github", "github")
+            )
+
+        # Validate projects section (automation)
+        if "projects" in config:
+            for project_name, project_config in config["projects"].items():
+                project_errors = self.validate_section(
+                    project_config, "project", f"projects.{project_name}"
+                )
+                errors.extend(project_errors)
+
+        # Validate workflow section (automation)
+        if "workflow" in config:
+            errors.extend(
+                self.validate_section(config["workflow"], "workflow", "workflow")
+            )
+
+        # Validate analyzer section (automation)
+        if "analyzer" in config:
+            errors.extend(
+                self.validate_section(config["analyzer"], "analyzer", "analyzer")
+            )
 
         return errors
 

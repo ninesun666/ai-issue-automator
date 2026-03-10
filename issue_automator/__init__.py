@@ -1,5 +1,5 @@
 """
-ai_harness - Modular AI Harness package.
+issue_automator - Modular AI Harness package.
 
 Exports the core interfaces and integration points for downstream tooling.
 This file is intentionally lightweight to preserve backward compatibility with

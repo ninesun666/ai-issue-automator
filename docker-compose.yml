@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  issue-automator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - IFLOW_NPM_PACKAGE=${IFLOW_NPM_PACKAGE:-iflow}
+        - WEBHOOK_PORT=${WEBHOOK_PORT:-8080}
+    container_name: issue-automator
+    restart: unless-stopped
+    ports:
+      - "${WEBHOOK_PORT:-8080}:${WEBHOOK_PORT:-8080}"
+    environment:
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - GITHUB_WEBHOOK_SECRET=${GITHUB_WEBHOOK_SECRET}
+      - WEBHOOK_PORT=${WEBHOOK_PORT:-8080}
+      - WEBHOOK_HOST=0.0.0.0
+      - PYTHONUNBUFFERED=1
+    volumes:
+      # Persist repositories
+      - ./repos:/app/repos
+      # Persist configuration
+      - ./issue-automator.config.json:/app/issue-automator.config.json:ro
+      # Persist logs
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${WEBHOOK_PORT:-8080}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - issue-automator-network
+
+  # Optional: Reverse proxy for SSL
+  nginx:
+    image: nginx:alpine
+    container_name: issue-automator-nginx
+    restart: unless-stopped
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    depends_on:
+      - issue-automator
+    networks:
+      - issue-automator-network
+    profiles:
+      - production
+
+networks:
+  issue-automator-network:
+    driver: bridge
+
+volumes:
+  repos:
+  logs:

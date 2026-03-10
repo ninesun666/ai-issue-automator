@@ -1,7 +1,7 @@
 @echo off
-title AI Harness Debug
+title Issue Automator Debug
 echo ============================================================
-echo            AI Harness - Debug Mode
+echo          Issue Automator - Debug Mode
 echo ============================================================
 echo.
 

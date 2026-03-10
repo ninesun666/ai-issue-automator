@@ -1,11 +1,11 @@
 @echo off
-title AI Harness - Project Initializer
+title Issue Automator - Project Initializer
 set PYTHONIOENCODING=utf-8
 chcp 65001 >nul 2>&1
 
 echo.
 echo ============================================================
-echo            AI Harness - Project Initializer
+echo          Issue Automator - Project Initializer
 echo ============================================================
 echo.
 

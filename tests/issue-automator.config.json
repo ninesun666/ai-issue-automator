@@ -1,0 +1,32 @@
+{
+  "webhook": {
+    "port": 8080,
+    "host": "0.0.0.0",
+    "secret": "test-webhook-secret",
+    "path": "/webhook"
+  },
+  "github": {
+    "token": "${GITHUB_TOKEN}",
+    "api_base": "https://api.github.com"
+  },
+  "projects": {
+    "ninesun-blog": {
+      "repo": "ninesun666/ninesun-blog",
+      "branch_prefix_feature": "feat",
+      "branch_prefix_bug": "fix",
+      "labels_feature": ["enhancement", "feature"],
+      "labels_bug": ["bug", "fix"],
+      "default_reviewers": []
+    }
+  },
+  "workflow": {
+    "auto_merge": false,
+    "require_review": true,
+    "max_retry": 3,
+    "default_reviewers": []
+  },
+  "analyzer": {
+    "max_turns": 30,
+    "analysis_timeout": 600
+  }
+}

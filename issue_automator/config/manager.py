@@ -107,7 +107,7 @@ class ConfigManager:
     Configuration manager with multi-level configuration support.
 
     Configuration precedence (highest to lowest):
-    1. Environment variables (AI_HARNESS_*)
+    1. Environment variables (issue_automator_*)
     2. Project-level config (.ai-harness/config.yaml)
     3. Global config (~/.ai-harness/config.yaml)
     4. Default values
@@ -199,19 +199,19 @@ class ConfigManager:
         """
         Load configuration from environment variables.
 
-        Environment variables use the prefix AI_HARNESS_ and
+        Environment variables use the prefix issue_automator_ and
         nested keys use double underscore.
 
         Examples:
-            AI_HARNESS_DEFAULT_PROVIDER=claude
-            AI_HARNESS_SCHEDULER__DEFAULT_TIMEOUT=1200
-            AI_HARNESS_REPORT__DEFAULT_FORMAT=html
+            issue_automator_DEFAULT_PROVIDER=claude
+            issue_automator_SCHEDULER__DEFAULT_TIMEOUT=1200
+            issue_automator_REPORT__DEFAULT_FORMAT=html
 
         Returns:
             Dict: Configuration dictionary.
         """
         config: Dict[str, Any] = {}
-        prefix = "AI_HARNESS_"
+        prefix = "issue_automator_"
 
         for key, value in os.environ.items():
             if not key.startswith(prefix):

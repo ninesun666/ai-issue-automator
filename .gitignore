@@ -15,7 +15,12 @@ Thumbs.db
 dist/
 build/
 *.egg-info/
+issue_automator.egg-info/
 
 # Test images (user generated)
 *.jpg
 *.png
+
+# Repositories (cloned by automator)
+repos/
+logs/

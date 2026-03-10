@@ -1,15 +1,15 @@
 @echo off
-title AI Harness
+title Issue Automator
 set PYTHONIOENCODING=utf-8
 chcp 65001 >nul 2>&1
 
 echo.
 echo ============================================================
-echo            AI Harness - iFlow Auto Development
+echo         Issue Automator - GitHub Issue Automation
 echo ============================================================
 echo.
 
-python "%~dp0iflow_runner.py" --interactive
+python -m issue_automator.cli
 
 echo.
 echo Press any key to exit...
